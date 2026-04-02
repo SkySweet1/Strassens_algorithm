@@ -1,3 +1,11 @@
+/*
+роль 1              разработка модификации Штрассена (формулы)              strassen_mul
+роль 2              проверка корректности, спецификации                     naive_mul
+роль 3              реализация операций в поле                              field_add, sub, mul
+роль 4              сборка всего вместе (ввод-вывод, память)                mat_create, free main и др.
+роль 5              проверка корректности и скорости                        test_perf
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,7 +49,7 @@ typedef struct {} Matrix; чтобы не писать каждый раз struc
 флаг что матрица большая (освободить память)        int is_dynamic;
 */
 
-int field_add()
+int field_add() // роль 3
 {
 
 }
@@ -52,7 +60,7 @@ int field_add()
 ну только у нас будет field_add(a, b, mod) -> a+b(mod), то есть field_add(5, 6, 10) -> 1 
 */
 
-int field_sub()
+int field_sub() // роль 3
 {
 
 }
@@ -61,7 +69,7 @@ int field_sub()
 field_sub(a, b, mod) a-b(mod)
 */
 
-int field_mul()
+int field_mul() // роль 3
 {
 
 }
@@ -70,7 +78,7 @@ int field_mul()
 field_sub(a, b, mod) a*b(mod)
 */
 
-Matrix mat_create(size_t n, int mod)
+Matrix mat_create(size_t n, int mod) // роль 4
 {
     Matrix new_matrix;
 
@@ -123,7 +131,7 @@ new_matrix.is_dynamic = (size > 16 * 1024) ? 1 : 0;     проверка на р
 return new_matrix;                                      ну и возвращаем матрицу которую мы создали
 */
 
-void mat_free()
+void mat_free() // роль 4
 {
 
 }
@@ -132,7 +140,7 @@ void mat_free()
 
 */
 
-int mat_fill_random()
+int mat_fill_random() // роль 4
 {
 
 }
@@ -141,7 +149,7 @@ int mat_fill_random()
 
 */
 
-int mat_print()
+int mat_print() // роль 4
 {
 
 }
@@ -150,7 +158,7 @@ int mat_print()
 
 */
 
-int naive_mul()
+int naive_mul() // роль 2
 {
 
 }
@@ -159,7 +167,7 @@ int naive_mul()
 
 */
 
-Matrix mat_submatrix()
+Matrix mat_submatrix() // роль 4
 {
 
 }
@@ -168,7 +176,7 @@ Matrix mat_submatrix()
 
 */
 
-void mat_set_submatrix()
+void mat_set_submatrix() // роль 4
 {
 
 }
@@ -178,7 +186,7 @@ void mat_set_submatrix()
 
 */
 
-Matrix mat_add()
+Matrix mat_add() // роль 4
 {
 
 }
@@ -187,7 +195,7 @@ Matrix mat_add()
 
 */
 
-Matrix mat_sub()
+Matrix mat_sub() // роль 4
 {
 
 }
@@ -196,7 +204,7 @@ Matrix mat_sub()
 
 */
 
-int strassen_mul()
+int strassen_mul() // роль 1
 {
 
 }
@@ -205,7 +213,7 @@ int strassen_mul()
 
 */
 
-double test_perf()
+double test_perf() // роль 5
 {
 
 }
@@ -214,7 +222,7 @@ double test_perf()
 
 */
 
-int main(void){
+int main(void){    // роль 4
 
 
     return 0;
