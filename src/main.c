@@ -131,30 +131,78 @@ new_matrix.is_dynamic = (size > 16 * 1024) ? 1 : 0;     проверка на р
 return new_matrix;                                      ну и возвращаем матрицу которую мы создали
 */
 
-void mat_free() // роль 4
+void mat_free(Matrix* new_matrix) // роль 4
 {
+    if(new_matrix->data != NULL){
+        free(new_matrix->data);
+        new_matrix->data = NULL;
+    }
 
+    new_matrix->rows = 0;
+    new_matrix->cols = 0;
 }
 /*
 функция освобождает память, которую занимала матрица
 
+Matrix* new_matrix                      передаем указатель так как изменяем оригинальную матрицу, а не ее копию
+
+new_matrix->data != NULL                проверяем есть ли у матрицы выдленная память
+
+free(new_matrix->data);                 освобождаем память
+
+new_matrix->data = NULL;                флаг
+
+без очистки памяти, она будет утекать и не освобождаться, что привело бы к падению программы 
 */
 
-int mat_fill_random() // роль 4
+int mat_fill_random(Matrix* new_matrix) // роль 4
 {
+    if(new_matrix->data == NULL) return 1;
 
+    for(size_t i = 0; i < new_matrix->rows * new_matrix->cols; i++){
+        new_matrix->data[i] = rand() % new_matrix->mod;
+    }
+
+    return 0;
 }
 /*
 функция заполняет матрицу рандомными числами
 
+new_matrix->data == NULL                                        проверка на существование матрицы
+
+size_t i = 0; i < new_matrix->rows * new_matrix->cols; i++      идем по всем элементам
+new_matrix->data[i] = rand() % new_matrix->mod;                 каждый элемент -> рандомное число
+
+если матрица заполнилась успешно, то вернеться 0, если нет, то 1. 
+поэтому ты используем int, а не void перед функцией
 */
 
-int mat_print() // роль 4
+int mat_print(const Matrix* new_matrix, const char* name_data) // роль 4
 {
+    if(new_matrix->data == NULL) return 1;
 
+    printf("%s:\n", name_data);
+
+    for(size_t i = 0; i < new_matrix->rows; i++){
+        for(size_t j = 0; j < new_matrix->cols; j++){
+            printf("%4d ", new_matrix->data[i * new_matrix->cols + j]);
+        }
+
+        printf("\n");
+    }
+
+    return 0;
 }
 /*
 функция вывода матрицы
+пример:
+    матрица A:
+    1   2   
+    4   5   
+
+new_matrix->data == NULL                    проверка на существование данных в матрице
+
+вывод через вложеный цикл и после каждой строки "\n"
 
 */
 
