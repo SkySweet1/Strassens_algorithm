@@ -62,7 +62,6 @@ int field_add(int a, int b, int mod) // роль 3
 ну типо 5 (mod 4) = 1 остаток
 
 ну только у нас будет field_add(a, b, mod) -> a+b(mod), то есть field_add(5, 6, 10) -> 1 
-
 */
 
 int field_sub(int a, int b, int mod) // роль 3
