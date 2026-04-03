@@ -49,33 +49,51 @@ typedef struct {} Matrix; чтобы не писать каждый раз struc
 флаг что матрица большая (освободить память)        int is_dynamic;
 */
 
-int field_add() // роль 3
+int field_add(int a, int b, int mod) // роль 3
 {
+    int result = a + b;
 
+    if(result >= mod) result -= mod;
+
+    return result;
 }
 /*
 эта функция будет заварачивать числа в модуль
 ну типо 5 (mod 4) = 1 остаток
 
 ну только у нас будет field_add(a, b, mod) -> a+b(mod), то есть field_add(5, 6, 10) -> 1 
+
 */
 
-int field_sub() // роль 3
+int field_sub(int a, int b, int mod) // роль 3
 {
+    int result = a - b;
 
+    if(result < 0) result += mod;
+
+    return result;
 }
 /*
 тоже самое с вычитанием 
 field_sub(a, b, mod) a-b(mod)
+
 */
 
-int field_mul() // роль 3
+int field_mul(int a, int b, int mod) // роль 3
 {
+    long long result = (long long)a * b;
 
+    return (int)(result % mod);
 }
 /*
 тоже самое с умножением
 field_sub(a, b, mod) a*b(mod)
+
+long long используеться для безумно огромных чисел
+int не подойдет так как его диапазон очень ограничен, а тип long long может вмещать в себя примерно 9 000 000 000 000 000 000
+
+(long long)a * b                        превращает тип int в тим long long чтобы засунуть в long long result
+(int)(result % mod)                     делит result на mod и превращает обратно в int
 */
 
 Matrix mat_create(size_t n, int mod) // роль 4
