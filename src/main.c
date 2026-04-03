@@ -215,13 +215,37 @@ int naive_mul() // роль 2
 
 */
 
-Matrix mat_submatrix() // роль 4
+Matrix mat_submatrix(const Matrix* mat_origin, size_t row_begin, size_t col_begin, size_t block_size) // роль 4
 {
+    Matrix block = mat_create(block_size, mat_origin->mod);
 
+    if(block.data == NULL) return block;
+
+    for(size_t i = 0; i < block_size; i++){
+        for(size_t j = 0; j < block_size; j++){
+            block.data[i * block_size + j] = mat_origin->data[(row_begin + i) * mat_origin->cols + (col_begin + j)];
+        }
+    }
+
+    return block;
 }
 /*
 создание кусочка матрицы - 4 блока (по алгоритму Штрассена)
 
+const Matrix* mat_origin                    исходная матрица
+size_t row_begin                            строка начала
+size_t col_begin                            столбец начала
+size_t block_size                           размер блока который будем вырезать (4 -> 4x4)
+
+Matrix block = mat_create(block_size, mat_origin->mod);
+создание матрицы размера block_size x block_size
+
+block.data == NULL                          проверка выделения памяти
+
+block.data[i * block_size + j] = mat_origin->data[(row_begin + i) * mat_origin->cols + (col_begin + j)];
+это самая основная и самая сложная строчка. мы копируем данные из оригинальной матрицы block.data[] = mat_origin->data[]
+
+возвращаем получившуюся матрицу (блок)
 */
 
 void mat_set_submatrix() // роль 4
