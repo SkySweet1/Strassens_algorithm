@@ -265,13 +265,36 @@ block.data[i * block_size + j] = mat_origin->data[(row_begin + i) * mat_origin->
 возвращаем получившуюся матрицу (блок)
 */
 
-void mat_set_submatrix() // роль 4
+void mat_set_submatrix(Matrix* insert_mat, size_t row_begin, size_t col_begin, const Matrix* block) // роль 4
 {
+    size_t n = block->rows;
 
+    for(size_t i = 0; i < n; i++){
+        for(size_t j = 0; j < n; j++){
+            insert_mat->data[(row_begin + i) * insert_mat->cols + (col_begin + j)] = block->data[i * n + j];
+        }
+    }
 }
 /*
 обратное действие к mat_submatrix() 
 вставляет маленький блок обратно в большую матрицу
+
+Matrix* insert_mat                      матрица, в которую будем вставлять
+size_t col_begin                        с какой строки начинать вставку
+size_t row_begin                        с какого столбца начинать вставку
+const Martix* block                     мини-блок который будем вставлять
+
+size_t n = block->rows                  обьявляем размер блока (квадрат поэтому rows=cols)
+
+insert_mat->data[(row_begin + i) * insert_mat->cols + (col_begin + j)] = block->data[i * n + j];
+
+вычисляем индекс в матрице которую будем вставлять чтобы положить туда нужную матрицу
+(row_start + i)                         номер строки
+insert_mat->cols                        умножаем на ширину, чтобы перейки к нужной строке
+(col_begin + j)                         прибавляем номер столбца
+
+block->data[i * n + j]                  вычисляем откуда берем
+i * n + j                               это индекс элемента в маленьком блоке
 
 */
 
