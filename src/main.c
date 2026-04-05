@@ -298,22 +298,57 @@ i * n + j                               это индекс элемента в 
 
 */
 
-Matrix mat_add() // роль 4
+Matrix mat_add(const Matrix* A, const Matrix* B) // роль 4
 {
+    Matrix C = mat_create(A->rows, A->mod);
 
+    if(C.data == NULL) return C;
+
+    for(size_t i = 0; i < A->rows * A->cols; i++){
+        C.data[i] = field_add(A->data[i], B->data[i], A->mod);
+    }
+
+    return C;
 }
 /*
 функция сложения двух матриц поэлементно
 
+const Matrix* A, const Matrix* B                        принимаем две матрицы
+
+Matrix C = mat_create(A->rows, A->mod);                 создаем пустую матрицы такого же размера как А и с таким же модулем
+
+(size_t i = 0; i < A->rows * A->cols; i++)              делаем один цикл так как матрица храниться как лоский массив
+
+C.data[i] = field_add(A->data[i], B->data[i], A->mod);  сложение двух чисел из матриц А, В и кладет результат в матрицы С, но с учетом модуля
+
+возвращаем матрицу С
 */
 
-Matrix mat_sub() // роль 4
+Matrix mat_sub(const Matrix* A, const Matrix* B) // роль 4
 {
+    Matrix C = mat_create(A->rows, A->mod);
+
+    if(C.data == NULL) return C;
+
+    for(size_t i = 0; i < A->rows * A->cols; i++){
+        C.data[i] = field_sub(A->data[i], B->data[i], A->mod);
+    }
+
+    return C;
 
 }
 /*
 функция вычитания двух матриц поэлементно
 
+const Matrix* A, const Matrix* B                        принимаем две матрицы
+
+Matrix C = mat_create(A->rows, A->mod);                 создаем пустую матрицы такого же размера как А и с таким же модулем
+
+(size_t i = 0; i < A->rows * A->cols; i++)              делаем один цикл так как матрица храниться как лоский массив
+
+C.data[i] = field_sub(A->data[i], B->data[i], A->mod);  вычитание двух чисел из матриц А, В и кладет результат в матрицы С, но с учетом модуля
+
+возвращаем матрицу С
 */
 
 int strassen_mul() // роль 1
