@@ -374,3 +374,8 @@ int main(void){    // роль 4
 
     return 0;
 }
+
+
+
+
+
