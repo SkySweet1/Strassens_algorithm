@@ -74,15 +74,26 @@ int field_add(int a, int b, int mod) // роль 3
 
 int field_sub(int a, int b, int mod) // роль 3
 {
-    int result = a - b;
 
-    if(result < 0) result += mod;
+    int difference = a - b;
 
-    return result;
+    if(difference >= 0){
+        return difference;
+    } else{
+        if(mod > 0){
+            difference += mod;
+        }
+        return difference;
+    }
+
+    
 }
 /*
-Тоже самое с вычитанием 
+Та же функция, но уже с вычитанием 
 field_sub(a, b, mod) a-b(mod)
+Если получившаяся разность больше либо равна 0, то сразу возвращаем значение difference,
+иначе (делаем дополнительную проверку на неотрицательность модуля) добавляем mod к difference и уже после возвращаем значение difference
+
 
 */
 
