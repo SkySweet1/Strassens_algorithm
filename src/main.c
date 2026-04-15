@@ -51,15 +51,23 @@ typedef struct {} Matrix; чтобы не писать каждый раз struc
 
 int field_add(int a, int b, int mod) // роль 3
 {
-    int result = a + b;
+    int sum = a + b;
+    int corrected;
 
-    if(result >= mod) result -= mod;
+    if(sum >= mod){
+        corrected = sum - mod;
+    } else{
+        corrected = sum;
+    }
 
-    return result;
+    return corrected;
+
 }
 /*
-Данная функция будет заварачивать числа в модуль
+Данная функция будет заворачивать числа в модуль
 Например: 5 (mod 4) = 1 остаток
+Если получившаяся сумма больше либо равна модулю, то происходит вычитание sum - mod, 
+иначе просто присваиваем переменной corrected значение sum, после проверки возвращаем получившееся значение переменной corrected
 
 Только в нашем случае, у нас будет field_add(a, b, mod) -> a+b(mod), то есть field_add(5, 6, 10) -> 1 
 */
