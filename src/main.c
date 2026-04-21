@@ -379,12 +379,105 @@ int strassen_mul() // роль 1
 
 */
 
-double test_perf() // роль 5
+double test_perf(size_t n, int mod, int use_strassen) // роль 5
 {
+    Matrix A = mat_create(n, mod);
+    Matrix B = mat_create(n, mod);
+    Matrix C = mat_create(n, mod);
+
+    if(A.data == NULL || B.data == NULL || C.data == NULL){
+        mat_free(&A); 
+        mat_free(&B);
+        mat_free(&C);
+
+        return -1.0;
+    }
+
+    mat_fill_random(&A);
+    mat_fill_random(&B);
+
+    clock_t start = clock();
+
+    int err;
+
+    if(use_strassen){
+        err = strassen_mul(&A, &B, &C);
+
+    } else {
+        err = naive_mul(&A, &B, &C);
+
+    }
+
+    clock_t end = clock();
+
+    mat_free(&A); 
+    mat_free(&B);
+    mat_free(&C);
+
+    if(err != 0){
+        return -1.0;
+
+    }
+
+    return (double)(end - start)/CLOCKS_PER_SEC;
 
 }
 /*
-Замер времени умножения матриц
+Замер времени умножения матриц test_performance
+
+Matrix A = mat_create(n, mod);
+Matrix B = mat_create(n, mod);
+Matrix C = mat_create(n, mod);
+
+создание трех квадратных матриц размера n x n с модулем mod
+А и В - будем умножать
+С     - будем сохранять
+
+if(A.data == NULL || B.data == NULL || C.data == NULL)
+проверка ошибок выделения памяти и если хоть одна матрица не создалась 
+то освобождаем то что успело создаться
+
+return -1.0; - отрицательное время -> сигнал ошибки
+
+mat_fill_random(&A);
+mat_fill_random(&B);
+
+заполнение случайными числами
+(если заполнить нулями то умножение дат ноль - что не очень интересно)
+
+clock_t start = clock();
+
+засекаем время до умножения 
+функция clock() возвращает количество тактов процессора с момента запуска программы
+
+int err;
+if(use_strassen) {err = strassen_mul(&A, &B, &C);} else {err = naive_mul(&A, &B, &C);}
+
+выполняем умножение
+если use_strassen == 1 -> вызываем Штрассена
+если use_strassen == 0 -> вызываем наивное умножение
+err сохраняет код ошибки (0 — всё хорошо, не 0 — что-то пошло не так)
+
+clock_t end = clock();
+
+засекаем время после умножения
+
+mat_free(&A); 
+mat_free(&B);
+mat_free(&C);
+
+освобождаем память
+если не освобидить память то будет утечка
+каждый вызов mat_create() должен сопровождаться вызовом mat_free()
+
+if(err != 0){return -1.0;}
+
+если умножение вернуло ошибку (допустим неправильные размеры) то возвращаем -1.0
+
+return (double)(end - start)/CLOCKS_PER_SEC;
+(end - start)  - разница в тактах процессора
+CLOCKS_PER_SEC - сколько тактов в одной секунде
+делим и получаем время в секундах
 
 */
 
