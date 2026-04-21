@@ -242,13 +242,68 @@ new_matrix->data == NULL                    Проверка на существ
 
 */
 
-int naive_mul() // роль 2
+int naive_mul(const Matrix* A, const Matrix* B, Matrix* C) // роль 2
 {
+    if(A->data == NULL || B->data == NULL || C->data == NULL){
+        return 1;
+    }
+
+    if(A->cols != B->rows){
+        return 2;
+    }
+
+    if(A->rows != C->rows || B->cols != C->cols){
+        return 3;
+    }
+
+    if(A->mod != B->mod || A->mod != C->mod){
+        return 4;
+    }
+
+    size_t n = A->rows;
+    size_t m = A->cols;
+    size_t p = B->cols;
+
+    for(size_t i = 0; i < n; i++){
+        for(size_t j = 0; j < p; j++){
+            int summ = 0;
+
+            for(size_t k = 0; k < m; k++){
+                int a = A->data[i * m + k];
+                int b = B->data[k * p + j];
+
+                summ = field_add(summ, field_mul(a, b, A->mod), A->mod);
+
+            }
+
+            C->data[i * p + j] = summ;
+        }
+    }
 
 }
 /*
 Функция умножает две матрицы стандартным способом (три вложенных цикла)
 
+if(A->data == NULL || B->data == NULL || C->data == NULL)                   Проверяем, что все три матрицы имеют выделенную память
+if(A->cols != B->rows)                                                      умножать можно только если ширина А равна высоте B - правило умножения матриц
+if(A->rows != C->rows || B->cols != C->cols)                                результат С должен иметь размер (сторки А)х(столбцы В)
+if(A->mod != B->mod || A->mod != C->mod)                                    все три матрицы должны работать в одном поле (с одинаковым модулем)
+
+size_t n = A->rows; size_t m = A->cols; size_t p = B->cols;                 для матрицы А размером n x m, B размером m x p, C результат будет n x p
+
+for(size_t i = 0; i < n; i++)                                               цикл по строкам А
+for(size_t j = 0; j < p; j++)                                               цикл по столбцам В
+int sum = 0;                                                                начало с нуля
+for(size_t k = 0; k < m; k++)                                               цикл по общему измерению
+
+int a = A->data[i * m + k];                                                 А[i][k]
+int b = B->data[k * p + j];                                                 B[k][j]
+
+summ = field_add(summ, field_mul(a, b, A->mod), A->mod);
+field_mul(a, b, A->mod)                                                     умножает а и b
+field_add(summ, ... , A->mod);                                              прибавляет к накопленной сумме
+
+каждое действие должно заворачиваться по модулю, иначе было бы summ = summ + a * b (что неправильно)
 */
 
 Matrix mat_submatrix(const Matrix* mat_origin, size_t row_begin, size_t col_begin, size_t block_size) // роль 4
