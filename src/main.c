@@ -537,6 +537,8 @@ CLOCKS_PER_SEC - сколько тактов в одной секунде
 */
 
 int main(void){    // роль 4
+    printf("test correctness\n"); // проверка корректности
+
     Matrix A = mat_create(4, 7);
     Matrix B = mat_create(4, 7);
     Matrix A_random = mat_create(4, 7);
@@ -616,9 +618,42 @@ int main(void){    // роль 4
     mat_free(&C_naive_random);
     mat_free(&C_strass_random);
     
-    // далее будет тест производительности
+
+    printf("test perfomance\n"); // тест производительности
+
+    printf("%-10s %-10s %-15s %-15s %-10s\n", "n", "mod", "Naive(sec)", "Strassen(sec)", "Speedup");
+
+    int mods[] = {7, 10007, 1000003};
+    size_t sizes[] = {64, 128, 256, 512};
+    
+    for (int mi = 0; mi < 3; mi++) {
+        for (int si = 0; si < 4; si++) {
+            size_t n = sizes[si];
+            int mod = mods[mi];
+            
+            double time_naive = test_perf(n, mod, 0);
+            double time_strassen = test_perf(n, mod, 1);
+            
+            if (time_naive > 0 && time_strassen > 0) {
+                double speedup = time_naive / time_strassen;
+
+                printf("%-10zu %-10d %-15.4f %-15.4f %-10.2f\n", n, mod, time_naive, time_strassen, speedup);
+
+            } else {
+                printf("%-10zu %-10d %-15s %-15s %-10s\n", n, mod, "ERROR", "ERROR", "ERROR");
+
+            }
+        }
+        printf("\n");
+
+    }
+    
+    return 0;
+
 }
 /*
+-- тест на корректность
+
 надо проверить корректность того что алгоритм Штрассена работает правильно (нужно сравнить с наивным методом)
 так же, нужно замерить время для разных размеров и модулей
 
@@ -644,5 +679,32 @@ equal и equal_random - проверяем совпадают ли резуль�
 
 после проверки корректности освобождаем память очищением памяти
 
+
 -- тест производительности
+
+надо оценить производительность кода запуском умножения 
+матриц много раз с разными размерами (64,128,256,512) и разными модулями полей (7, 10007, 1000003), замеряя время и выводя таблицу.
+
+int mods[] = {7, 10007, 1000003}                mods        три модуля полей (маленький, средний, большой)
+size_t sizes[] = {64, 128, 256, 512}            sizes       четыре размера матриц
+
+(int mi = 0; mi < 3; mi++)      Внешний цикл перебирает модули: 7, 10007, 1000003.
+(int si = 0; si < 4; si++)      Внутренний цикл перебирает размеры: 64, 128, 256, 512.
+
+получение текущего размера и модуля:
+size_t n = sizes[si]
+int mod = mods[mi]
+
+замер времени:
+double time_naive = test_perf(n, mod, 0)            замеряет время наивного умножения
+double time_strassen = test_perf(n, mod, 1)         замеряет время Штрассена
+
+далее идет проверка и вывод в таблицу
+if (time_naive > 0 && time_strassen > 0) {
+    double speedup = time_naive / time_strassen;
+        printf("%-10zu %-10d %-15.4f %-15.4f %-10.2f\n", n, mod, time_naive, time_strassen, speedup);
+    } else {
+        printf("%-10zu %-10d %-15s %-15s %-10s\n", n, mod, "ERROR", "ERROR", "ERROR");
+    }
+
 */
