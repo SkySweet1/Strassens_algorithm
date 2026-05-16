@@ -425,12 +425,384 @@ C.data[i] = field_sub(A->data[i], B->data[i], A->mod);  Вычитание дв�
 Возвращаем матрицу С
 */
 
-int strassen_mul() // роль 1
-{
 
+int strassen_mul(const Matrix* A, const Matrix* B, Matrix* C) // роль 1
+{
+    if (A->data == NULL || B->data == NULL || C->data == NULL) {
+        return 1; // Ошибка, если не выделится память
+    }
+    
+    if (A->rows != A->cols || B->rows != B->cols || A->rows != B->rows) {
+        return 2; // Ошибка, если матрицы не кввадратные или разных размеров
+    }
+    
+    if (A->rows != C->rows || A->cols != C->cols) {
+        return 2; // Ошибка, если размер матрицы С не совпадает с размером А
+    }
+    
+    if (A->mod != B->mod || A->mod != C->mod) {
+        return 4; // Ошибка, если модули не совпадают
+    }
+    
+    size_t n = A->rows; 
+    
+    if (n <= THRESHOLD) {
+        return naive_mul(A, B, C);
+    }
+    
+    size_t m = 1;
+    while (m < n) m <<= 1;
+    
+    Matrix A_ext = mat_create(m, A->mod);
+    Matrix B_ext = mat_create(m, B->mod);
+    Matrix C_ext = mat_create(m, C->mod);
+    
+    if (A_ext.data == NULL || B_ext.data == NULL || C_ext.data == NULL) {
+        if (A_ext.data != NULL) mat_free(&A_ext);
+        if (B_ext.data != NULL) mat_free(&B_ext);
+        if (C_ext.data != NULL) mat_free(&C_ext);
+        return 1; // Ошибка, если память на матрицы не выделится
+    }
+    
+    for (size_t i = 0; i < n; i++) {
+        for (size_t j = 0; j < n; j++) {
+            A_ext.data[i * m + j] = A->data[i * n + j];
+            B_ext.data[i * m + j] = B->data[i * n + j];
+        }
+    }
+    
+    size_t k = m / 2;
+    
+    Matrix A11 = mat_submatrix(&A_ext, 0,   0,   k);
+    Matrix A12 = mat_submatrix(&A_ext, 0,   k,   k);
+    Matrix A21 = mat_submatrix(&A_ext, k,   0,   k);
+    Matrix A22 = mat_submatrix(&A_ext, k,   k,   k);
+    
+    Matrix B11 = mat_submatrix(&B_ext, 0,   0,   k);
+    Matrix B12 = mat_submatrix(&B_ext, 0,   k,   k);
+    Matrix B21 = mat_submatrix(&B_ext, k,   0,   k);
+    Matrix B22 = mat_submatrix(&B_ext, k,   k,   k);
+    
+    if (A11.data == NULL || A12.data == NULL || A21.data == NULL || A22.data == NULL ||
+        B11.data == NULL || B12.data == NULL || B21.data == NULL || B22.data == NULL) {
+        if (A11.data != NULL) mat_free(&A11);
+        if (A12.data != NULL) mat_free(&A12);
+        if (A21.data != NULL) mat_free(&A21);
+        if (A22.data != NULL) mat_free(&A22);
+        if (B11.data != NULL) mat_free(&B11);
+        if (B12.data != NULL) mat_free(&B12);
+        if (B21.data != NULL) mat_free(&B21);
+        if (B22.data != NULL) mat_free(&B22);
+        mat_free(&A_ext);
+        mat_free(&B_ext);
+        mat_free(&C_ext);
+        return 1; // Ошибка, если память не выделится
+    }
+    
+    Matrix S1 = mat_sub(&B12, &B22); 
+    Matrix S2 = mat_add(&A11, &A12);
+    Matrix S3 = mat_add(&A21, &A22);
+    Matrix S4 = mat_sub(&B21, &B11);
+    Matrix S5 = mat_add(&A11, &A22);
+    Matrix S6 = mat_add(&B11, &B22);
+    Matrix S7 = mat_sub(&A12, &A22);
+    Matrix S8 = mat_add(&B21, &B22);
+    Matrix S9 = mat_sub(&A11, &A21);
+    Matrix S10 = mat_add(&B11, &B12);
+    
+    if (S1.data == NULL || S2.data == NULL || S3.data == NULL || S4.data == NULL ||
+        S5.data == NULL || S6.data == NULL || S7.data == NULL || S8.data == NULL ||
+        S9.data == NULL || S10.data == NULL) {
+        if (S1.data != NULL) mat_free(&S1);
+        if (S2.data != NULL) mat_free(&S2);
+        if (S3.data != NULL) mat_free(&S3);
+        if (S4.data != NULL) mat_free(&S4);
+        if (S5.data != NULL) mat_free(&S5);
+        if (S6.data != NULL) mat_free(&S6);
+        if (S7.data != NULL) mat_free(&S7);
+        if (S8.data != NULL) mat_free(&S8);
+        if (S9.data != NULL) mat_free(&S9);
+        if (S10.data != NULL) mat_free(&S10);
+        if (A11.data != NULL) mat_free(&A11);
+        if (A12.data != NULL) mat_free(&A12);
+        if (A21.data != NULL) mat_free(&A21);
+        if (A22.data != NULL) mat_free(&A22);
+        if (B11.data != NULL) mat_free(&B11);
+        if (B12.data != NULL) mat_free(&B12);
+        if (B21.data != NULL) mat_free(&B21);
+        if (B22.data != NULL) mat_free(&B22);
+        mat_free(&A_ext);
+        mat_free(&B_ext);
+        mat_free(&C_ext);
+        return 1; // Ошибка, если память не выделится
+    }
+    
+    Matrix P1 = mat_create(k, A->mod);
+    Matrix P2 = mat_create(k, A->mod);
+    Matrix P3 = mat_create(k, A->mod);
+    Matrix P4 = mat_create(k, A->mod);
+    Matrix P5 = mat_create(k, A->mod);
+    Matrix P6 = mat_create(k, A->mod);
+    Matrix P7 = mat_create(k, A->mod);
+    
+    if (P1.data == NULL || P2.data == NULL || P3.data == NULL || P4.data == NULL ||
+        P5.data == NULL || P6.data == NULL || P7.data == NULL) {
+        if (P1.data != NULL) mat_free(&P1);
+        if (P2.data != NULL) mat_free(&P2);
+        if (P3.data != NULL) mat_free(&P3);
+        if (P4.data != NULL) mat_free(&P4);
+        if (P5.data != NULL) mat_free(&P5);
+        if (P6.data != NULL) mat_free(&P6);
+        if (P7.data != NULL) mat_free(&P7);
+        if (S1.data != NULL) mat_free(&S1);
+        if (S2.data != NULL) mat_free(&S2);
+        if (S3.data != NULL) mat_free(&S3);
+        if (S4.data != NULL) mat_free(&S4);
+        if (S5.data != NULL) mat_free(&S5);
+        if (S6.data != NULL) mat_free(&S6);
+        if (S7.data != NULL) mat_free(&S7);
+        if (S8.data != NULL) mat_free(&S8);
+        if (S9.data != NULL) mat_free(&S9);
+        if (S10.data != NULL) mat_free(&S10);
+        if (A11.data != NULL) mat_free(&A11);
+        if (A12.data != NULL) mat_free(&A12);
+        if (A21.data != NULL) mat_free(&A21);if (A22.data != NULL) mat_free(&A22);
+        if (B11.data != NULL) mat_free(&B11);
+        if (B12.data != NULL) mat_free(&B12);
+        if (B21.data != NULL) mat_free(&B21);
+        if (B22.data != NULL) mat_free(&B22);
+        mat_free(&A_ext);
+        mat_free(&B_ext);
+        mat_free(&C_ext);
+        return 1; // Ошибка, если память не выделится
+    }
+    
+    int err;
+    
+    err = strassen_mul(&A11, &S1, &P1);
+    if (err != 0) {
+        mat_free(&P1); mat_free(&P2); mat_free(&P3); mat_free(&P4);
+        mat_free(&P5); mat_free(&P6); mat_free(&P7);
+        mat_free(&S1); mat_free(&S2); mat_free(&S3); mat_free(&S4);
+        mat_free(&S5); mat_free(&S6); mat_free(&S7); mat_free(&S8);
+        mat_free(&S9); mat_free(&S10);
+        mat_free(&A11); mat_free(&A12); mat_free(&A21); mat_free(&A22);
+        mat_free(&B11); mat_free(&B12); mat_free(&B21); mat_free(&B22);
+        mat_free(&A_ext); mat_free(&B_ext); mat_free(&C_ext);
+        return err; } // Проверка, что умножение по алгоритму
+    
+    err = strassen_mul(&S2, &B22, &P2);
+    if (err != 0) {
+        mat_free(&P1); mat_free(&P2); mat_free(&P3); mat_free(&P4);
+        mat_free(&P5); mat_free(&P6); mat_free(&P7);
+        mat_free(&S1); mat_free(&S2); mat_free(&S3); mat_free(&S4);
+        mat_free(&S5); mat_free(&S6); mat_free(&S7); mat_free(&S8);
+        mat_free(&S9); mat_free(&S10);
+        mat_free(&A11); mat_free(&A12); mat_free(&A21); mat_free(&A22);
+        mat_free(&B11); mat_free(&B12); mat_free(&B21); mat_free(&B22);
+        mat_free(&A_ext); mat_free(&B_ext); mat_free(&C_ext);
+        return err; }
+    
+    err = strassen_mul(&S3, &B11, &P3);
+    if (err != 0) {
+        mat_free(&P1); mat_free(&P2); mat_free(&P3); mat_free(&P4);
+        mat_free(&P5); mat_free(&P6); mat_free(&P7);
+        mat_free(&S1); mat_free(&S2); mat_free(&S3); mat_free(&S4);
+        mat_free(&S5); mat_free(&S6); mat_free(&S7); mat_free(&S8);
+        mat_free(&S9); mat_free(&S10);
+        mat_free(&A11); mat_free(&A12); mat_free(&A21); mat_free(&A22);
+        mat_free(&B11); mat_free(&B12); mat_free(&B21); mat_free(&B22);
+        mat_free(&A_ext); mat_free(&B_ext); mat_free(&C_ext);
+        return err; }
+    
+    err = strassen_mul(&A22, &S4, &P4);
+    if (err != 0) {mat_free(&P1); mat_free(&P2); mat_free(&P3); mat_free(&P4);
+        mat_free(&P5); mat_free(&P6); mat_free(&P7);
+        mat_free(&S1); mat_free(&S2); mat_free(&S3); mat_free(&S4);
+        mat_free(&S5); mat_free(&S6); mat_free(&S7); mat_free(&S8);
+        mat_free(&S9); mat_free(&S10);
+        mat_free(&A11); mat_free(&A12); mat_free(&A21); mat_free(&A22);
+        mat_free(&B11); mat_free(&B12); mat_free(&B21); mat_free(&B22);
+        mat_free(&A_ext); mat_free(&B_ext); mat_free(&C_ext);
+        return err; }
+    
+    err = strassen_mul(&S5, &S6, &P5);
+    if (err != 0) {mat_free(&P1); mat_free(&P2); mat_free(&P3); mat_free(&P4);
+        mat_free(&P5); mat_free(&P6); mat_free(&P7);
+        mat_free(&S1); mat_free(&S2); mat_free(&S3); mat_free(&S4);
+        mat_free(&S5); mat_free(&S6); mat_free(&S7); mat_free(&S8);
+        mat_free(&S9); mat_free(&S10);
+        mat_free(&A11); mat_free(&A12); mat_free(&A21); mat_free(&A22);
+        mat_free(&B11); mat_free(&B12); mat_free(&B21); mat_free(&B22);
+        mat_free(&A_ext); mat_free(&B_ext); mat_free(&C_ext);
+        return err; }
+    
+    err = strassen_mul(&S7, &S8, &P6);
+    if (err != 0) {mat_free(&P1); mat_free(&P2); mat_free(&P3); mat_free(&P4);
+        mat_free(&P5); mat_free(&P6); mat_free(&P7);
+        mat_free(&S1); mat_free(&S2); mat_free(&S3); mat_free(&S4);
+        mat_free(&S5); mat_free(&S6); mat_free(&S7); mat_free(&S8);
+        mat_free(&S9); mat_free(&S10);
+        mat_free(&A11); mat_free(&A12); mat_free(&A21); mat_free(&A22);
+        mat_free(&B11); mat_free(&B12); mat_free(&B21); mat_free(&B22);
+        mat_free(&A_ext); mat_free(&B_ext); mat_free(&C_ext);
+        return err; }
+    
+    err = strassen_mul(&S9, &S10, &P7);
+    if (err != 0) {mat_free(&P1); mat_free(&P2); mat_free(&P3); mat_free(&P4);
+        mat_free(&P5); mat_free(&P6); mat_free(&P7);
+        mat_free(&S1); mat_free(&S2); mat_free(&S3); mat_free(&S4);
+        mat_free(&S5); mat_free(&S6); mat_free(&S7); mat_free(&S8);
+        mat_free(&S9); mat_free(&S10);
+        mat_free(&A11); mat_free(&A12); mat_free(&A21); mat_free(&A22);
+        mat_free(&B11); mat_free(&B12); mat_free(&B21); mat_free(&B22);
+        mat_free(&A_ext); mat_free(&B_ext); mat_free(&C_ext);
+        return err; }
+    
+    Matrix t1 = mat_add(&P5, &P4);
+    
+    Matrix t2 = mat_sub(&t1, &P2);
+
+    Matrix C11 = mat_add(&t2, &P6);
+    
+    Matrix C12 = mat_add(&P1, &P2);
+    
+    Matrix C21 = mat_add(&P3, &P4);
+    
+    Matrix t3 = mat_add(&P5, &P1);
+    Matrix t4 = mat_sub(&t3, &P3);
+    Matrix C22 = mat_sub(&t4, &P7);
+    
+    if (t1.data == NULL || t2.data == NULL || C11.data == NULL ||
+        C12.data == NULL || C21.data == NULL || t3.data == NULL ||
+        t4.data == NULL || C22.data == NULL) {
+        mat_free(&A_ext); mat_free(&B_ext); mat_free(&C_ext);
+        mat_free(&A11); mat_free(&A12); mat_free(&A21); mat_free(&A22);
+        mat_free(&B11); mat_free(&B12); mat_free(&B21); mat_free(&B22);
+        mat_free(&S1); mat_free(&S2); mat_free(&S3); mat_free(&S4);
+        mat_free(&S5); mat_free(&S6); mat_free(&S7); mat_free(&S8);
+        mat_free(&S9); mat_free(&S10);
+        mat_free(&P1); mat_free(&P2); mat_free(&P3); mat_free(&P4);
+        mat_free(&P5); mat_free(&P6); mat_free(&P7);
+        mat_free(&t1); mat_free(&t2); mat_free(&t3); mat_free(&t4);
+        mat_free(&C11); mat_free(&C12); mat_free(&C21); mat_free(&C22);
+        return 1; // Ошибка, если не выделили память
+    }
+    
+    mat_set_submatrix(&C_ext, 0,   0,   &C11);
+    mat_set_submatrix(&C_ext, 0,   k,   &C12);
+    mat_set_submatrix(&C_ext, k,   0,   &C21);
+    mat_set_submatrix(&C_ext, k,   k,   &C22);
+    
+    for (size_t i = 0; i < n; i++) {
+        for (size_t j = 0; j < n; j++) {
+            C->data[i * n + j] = C_ext.data[i * m + j];
+        }
+    }
+    
+    mat_free(&A_ext); mat_free(&B_ext); mat_free(&C_ext);
+    mat_free(&A11); mat_free(&A12); mat_free(&A21); mat_free(&A22);
+    mat_free(&B11); mat_free(&B12); mat_free(&B21); mat_free(&B22);
+    mat_free(&S1); mat_free(&S2); mat_free(&S3); mat_free(&S4);
+    mat_free(&S5); mat_free(&S6); mat_free(&S7); mat_free(&S8);
+    mat_free(&S9); mat_free(&S10);
+    mat_free(&P1); mat_free(&P2); mat_free(&P3); mat_free(&P4);
+    mat_free(&P5); mat_free(&P6); mat_free(&P7);
+    mat_free(&t1); mat_free(&t2); mat_free(&t3); mat_free(&t4);
+    mat_free(&C11); mat_free(&C12); mat_free(&C21); mat_free(&C22);
+    
+    return 0;
 }
 /*
-Главная функция умножения двух матриц по алгоритму Штрассена
+Главная функция умножения двух матриц по алгоритму Штрассена.
+
+    size_t n = A->rows;               сохранение размера матрицы в n
+
+    if (n <= THRESHOLD) {             если размер у матрицы маленький, то наивное умножение
+        return naive_mul(A, B, C);
+    }
+
+    size_t m = 1;                     ищем близжайшую степень 2 (алгоритм штрассена
+    while (m < n) m <<= 1;            можно применить только к матрицам с размером 
+                                        степени 2)
+
+    Matrix A_ext = mat_create(m, A->mod);    расширенные матрицы, дополенные нулями
+    Matrix B_ext = mat_create(m, B->mod);
+    Matrix C_ext = mat_create(m, C->mod);
+
+    for (size_t i = 0; i < n; i++) {         коприрование матриц А и В в левый верхний
+        for (size_t j = 0; j < n; j++) {     угол
+            A_ext.data[i * m + j] = A->data[i * n + j];
+            B_ext.data[i * m + j] = B->data[i * n + j];
+        }
+    }
+
+    size_t k = m / 2;                       размер половины матрицы
+
+    Matrix A11 = mat_submatrix(&A_ext, 0,   0,   k);     делим матрицы А и В на 4 части
+    Matrix A12 = mat_submatrix(&A_ext, 0,   k,   k);
+    Matrix A21 = mat_submatrix(&A_ext, k,   0,   k);
+    Matrix A22 = mat_submatrix(&A_ext, k,   k,   k);
+    
+    Matrix B11 = mat_submatrix(&B_ext, 0,   0,   k);
+    Matrix B12 = mat_submatrix(&B_ext, 0,   k,   k);
+    Matrix B21 = mat_submatrix(&B_ext, k,   0,   k);
+    Matrix B22 = mat_submatrix(&B_ext, k,   k,   k);
+
+    Matrix S1 = mat_sub(&B12, &B22);                    вычисляем  формузы для алгоритма
+    Matrix S2 = mat_add(&A11, &A12);
+    Matrix S3 = mat_add(&A21, &A22);
+    Matrix S4 = mat_sub(&B21, &B11);
+    Matrix S5 = mat_add(&A11, &A22);
+    Matrix S6 = mat_add(&B11, &B22);
+    Matrix S7 = mat_sub(&A12, &A22);
+    Matrix S8 = mat_add(&B21, &B22);
+    Matrix S9 = mat_sub(&A11, &A21);
+    Matrix S10 = mat_add(&B11, &B12);
+
+
+    Matrix P1 = mat_create(k, A->mod);                  создаются матрицы Р и заполняются 0
+    Matrix P2 = mat_create(k, A->mod);
+    Matrix P3 = mat_create(k, A->mod);
+    Matrix P4 = mat_create(k, A->mod);
+    Matrix P5 = mat_create(k, A->mod);
+    Matrix P6 = mat_create(k, A->mod);
+    Matrix P7 = mat_create(k, A->mod);
+
+    err = strassen_mul(&A11, &S1, &P1);                 создается переменная для ошибок и проверяет, 
+    err = strassen_mul(&S2, &B22, &P2);                 что можно умножить матрицы для формул для алгоритма штрассена,
+    err = strassen_mul(&S3, &B11, &P3);                  параллельно заполняем Р
+    err = strassen_mul(&A22, &S4, &P4);
+    err = strassen_mul(&S5, &S6, &P5);
+    err = strassen_mul(&S7, &S8, &P6);
+    err = strassen_mul(&S9, &S10, &P7);
+
+
+    Matrix t1 = mat_add(&P5, &P4);                      создаем еще дополнительные матрицы для вычисления 
+                                                        результата
+    Matrix t2 = mat_sub(&t1, &P2);
+
+    Matrix C11 = mat_add(&t2, &P6);
+    
+    Matrix C12 = mat_add(&P1, &P2);
+    
+    Matrix C21 = mat_add(&P3, &P4);
+    
+    Matrix t3 = mat_add(&P5, &P1);
+    Matrix t4 = mat_sub(&t3, &P3);
+    Matrix C22 = mat_sub(&t4, &P7);
+
+    mat_set_submatrix(&C_ext, 0,   0,   &C11);           вставляем блоки матрицы обратно
+    mat_set_submatrix(&C_ext, 0,   k,   &C12);
+    mat_set_submatrix(&C_ext, k,   0,   &C21);
+    mat_set_submatrix(&C_ext, k,   k,   &C22);
+    
+    for (size_t i = 0; i < n; i++) {                     копирование результата из C_ext в С
+        for (size_t j = 0; j < n; j++) {
+            C->data[i * n + j] = C_ext.data[i * m + j];
+        }
+    }
+
 
 */
 
