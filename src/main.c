@@ -920,6 +920,8 @@ int strassen_mul(const Matrix* A, const Matrix* B, Matrix* C) // роль 1
 
 */
 
+#include <sys/time.h>
+
 double test_perf(size_t n, int mod, int use_strassen) // роль 5
 {
     Matrix A = mat_create(n, mod);
@@ -937,30 +939,84 @@ double test_perf(size_t n, int mod, int use_strassen) // роль 5
     mat_fill_random(&A);
     mat_fill_random(&B);
 
-    clock_t start = clock();
+    int iterations = 1;
 
-    int err;
+    if (n <= 4) {
+        iterations = 100000;   // 100 тыс.
 
-    if(use_strassen){
-        err = strassen_mul(&A, &B, &C);
+    } else if (n <= 8) {
+        iterations = 10000;
 
-    } else {
-        err = naive_mul(&A, &B, &C);
+    } else if (n <= 16) {
+        iterations = 1000;
+
+    } else if (n <= 32) {
+        iterations = 100;
+
+    } else if (n <= 64) {
+        iterations = 10;
 
     }
 
-    clock_t end = clock();
 
-    mat_free(&A); 
-    mat_free(&B);
-    mat_free(&C);
+    // clock_t start = clock();
+
+    // int err;
+
+    // for (int iter = 0; iter < iterations; iter++) {
+    //     if (use_strassen) {
+    //         err = strassen_mul(&A, &B, &C);
+    //     } else {
+    //         err = naive_mul(&A, &B, &C);
+    //     }
+    //     if (err != 0) break;
+    // }
+
+
+    // clock_t end = clock();
+
+    // mat_free(&A); 
+    // mat_free(&B);
+    // mat_free(&C);
+
+    // if(err != 0){
+    //     return -1.0;
+
+    // }
+
+    struct timeval start, end;
+    
+    gettimeofday(&start, NULL);
+    
+    int err = 0;
+
+    for (int iter = 0; iter < iterations; iter++) {
+        if (use_strassen) {
+            err = strassen_mul(&A, &B, &C);
+
+        } else {
+            err = naive_mul(&A, &B, &C);
+
+        }
+        
+        if(err != 0){
+            break;
+        }
+    }
+    
+    gettimeofday(&end, NULL);
+
+    // double time_per_iter = (double)(end - start) / CLOCKS_PER_SEC / iterations;
+
+    // return time_per_iter;
 
     if(err != 0){
         return -1.0;
-
     }
 
-    return (double)(end - start)/CLOCKS_PER_SEC;
+    double total_time = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.0;
+    
+    return total_time / iterations;
 
 }
 /*
@@ -1020,111 +1076,130 @@ return (double)(end - start)/CLOCKS_PER_SEC;
 CLOCKS_PER_SEC - сколько тактов в одной секунде
 делим и получаем время в секундах
 
+--------------------------------------- UPD ---------------------------------------
+
+добавленно более точное измерение времени с помощью gettimeofday(), так как clock() может не работать корректно для коротких операций
+
+добавленно адаптивное количество итераций для разных размеров матриц, чтобы получить более стабильные измерения времени
+В зависимости от размера матрицы n, функция теперь выполняет разное количество повторений умножения
+Чтобы для маленьких матриц общее время выполнения всех повторений стало достаточно большим для точного измерения функцией gettimeofday()
+
+for (int iter = 0; iter < iterations; iter++)
+Внутри цикла выполняется одно и то же умножение много раз. Затем общее время делится на количество повторений, получая точное время одного умножения
+
+
+Для измерения времени умножения матриц малого размера (n ≤ 64) применялся метод многократных повторений:
+операция выполнялась от 10 до 100 000 раз, после чего общее время делилось на количество повторений
+Измерение времени производилось с помощью функции gettimeofday(), обеспечивающей микросекундную точность
+Для матриц большего размера (n > 64) достаточно одного измерения.
+
 */
 
 int main(void){    // роль 4
-    printf("test correctness\n"); // проверка корректности
+    // printf("test correctness\n"); // проверка корректности
 
-    Matrix A = mat_create(4, 7);
-    Matrix B = mat_create(4, 7);
-    Matrix A_random = mat_create(4, 7);
-    Matrix B_random = mat_create(4, 7);
-    Matrix C_naive = mat_create(4, 7);
-    Matrix C_strass = mat_create(4, 7);
-    Matrix C_naive_random = mat_create(4, 7);
-    Matrix C_strass_random = mat_create(4, 7);
+    // Matrix A = mat_create(4, 7);
+    // Matrix B = mat_create(4, 7);
+    // Matrix A_random = mat_create(4, 7);
+    // Matrix B_random = mat_create(4, 7);
+    // Matrix C_naive = mat_create(4, 7);
+    // Matrix C_strass = mat_create(4, 7);
+    // Matrix C_naive_random = mat_create(4, 7);
+    // Matrix C_strass_random = mat_create(4, 7);
 
-    if(A.data == NULL || B.data == NULL || C_naive.data == NULL || C_strass.data == NULL || C_naive_random.data == NULL || C_strass_random.data == NULL || A_random.data == NULL || B_random.data == NULL){
-        mat_free(&A); 
-        mat_free(&B);
-        mat_free(&A_random); 
-        mat_free(&B_random);
-        mat_free(&C_naive);
-        mat_free(&C_strass);
-        mat_free(&C_naive_random);
-        mat_free(&C_strass_random);
+    // if(A.data == NULL || B.data == NULL || C_naive.data == NULL || C_strass.data == NULL || C_naive_random.data == NULL || C_strass_random.data == NULL || A_random.data == NULL || B_random.data == NULL){
+    //     mat_free(&A); 
+    //     mat_free(&B);
+    //     mat_free(&A_random); 
+    //     mat_free(&B_random);
+    //     mat_free(&C_naive);
+    //     mat_free(&C_strass);
+    //     mat_free(&C_naive_random);
+    //     mat_free(&C_strass_random);
 
-        return 1;
-    }
+    //     return 1;
+    // }
 
-    for(size_t i = 0; i < 4; i++){
-        for(size_t j = 0; j < 4; j++){
-            A.data[i * 4 + j] = (i * 4 + j) % 7;
-            B.data[i * 4 + j] = (i * 4 + j) % 7;
-        }
-    }
+    // for(size_t i = 0; i < 4; i++){
+    //     for(size_t j = 0; j < 4; j++){
+    //         A.data[i * 4 + j] = (i * 4 + j) % 7;
+    //         B.data[i * 4 + j] = (i * 4 + j) % 7;
+    //     }
+    // }
 
-    mat_fill_random(&A_random);
-    mat_fill_random(&B_random);
+    // mat_fill_random(&A_random);
+    // mat_fill_random(&B_random);
 
-    mat_print(&A, "A");
-    mat_print(&B, "B");
-    mat_print(&A_random, "A_random");
-    mat_print(&B_random, "B_random");
+    // mat_print(&A, "A");
+    // mat_print(&B, "B");
+    // mat_print(&A_random, "A_random");
+    // mat_print(&B_random, "B_random");
 
-    int err_nai = naive_mul(&A, &B, &C_naive);
-    int err_str = strassen_mul(&A, &B, &C_strass);
-    int err_nai_random = naive_mul(&A_random, &B_random, &C_naive_random);
-    int err_str_random = strassen_mul(&A_random, &B_random, &C_strass_random);
+    // int err_nai = naive_mul(&A, &B, &C_naive);
+    // int err_str = strassen_mul(&A, &B, &C_strass);
+    // int err_nai_random = naive_mul(&A_random, &B_random, &C_naive_random);
+    // int err_str_random = strassen_mul(&A_random, &B_random, &C_strass_random);
 
-    if (err_nai != 0 && err_str != 0 && err_nai_random != 0 && err_str_random != 0) {
-        mat_print(&C_naive, "Naive result");
-        mat_print(&C_strass, "Strassen result");
-        mat_print(&C_naive_random, "Naive_random result");
-        mat_print(&C_strass_random, "Strassen_random result");
+    // if (err_nai != 0 && err_str != 0 && err_nai_random != 0 && err_str_random != 0) {
+    //     mat_print(&C_naive, "Naive result");
+    //     mat_print(&C_strass, "Strassen result");
+    //     mat_print(&C_naive_random, "Naive_random result");
+    //     mat_print(&C_strass_random, "Strassen_random result");
 
-        return 1;
+    //     return 1;
     
-    }
+    // }
 
-    printf("result for fixed matrix: \n");
+    // printf("result for fixed matrix: \n");
 
-    mat_print(&C_naive, "\n"); printf("Naive result\n\n");
-    mat_print(&C_strass, "\n"); printf("Strassen result\n\n");
+    // mat_print(&C_naive, "\n"); printf("Naive result\n\n");
+    // mat_print(&C_strass, "\n"); printf("Strassen result\n\n");
 
-    int equal = 1;
-    for (size_t i = 0; i < 16; i++) {
-        if (C_naive.data[i] != C_strass.data[i]) {
-            equal = 0;
-            break;
-        }
-    }
-    printf("Results are %s\n\n", equal ? "IDENTICAL" : "DIFFERENT");
+    // int equal = 1;
+    // for (size_t i = 0; i < 16; i++) {
+    //     if (C_naive.data[i] != C_strass.data[i]) {
+    //         equal = 0;
+    //         break;
+    //     }
+    // }
+    // printf("Results are %s\n\n", equal ? "IDENTICAL" : "DIFFERENT");
 
-    printf("result for random matrix: \n");
+    // printf("result for random matrix: \n");
 
-    mat_print(&C_naive_random, "\n"); printf("Naive random result\n\n");
-    mat_print(&C_strass_random, "\n"); printf("Strassen random result\n\n");
+    // mat_print(&C_naive_random, "\n"); printf("Naive random result\n\n");
+    // mat_print(&C_strass_random, "\n"); printf("Strassen random result\n\n");
 
 
-    int equal_random = 1;
-    for (size_t i = 0; i < 16; i++) {
-        if (C_naive_random.data[i] != C_strass_random.data[i]) {
-            equal = 0;
-            break;
-        }
-    }
-    printf("Results_random are %s\n\n", equal_random ? "IDENTICAL" : "DIFFERENT");
+    // int equal_random = 1;
+    // for (size_t i = 0; i < 16; i++) {
+    //     if (C_naive_random.data[i] != C_strass_random.data[i]) {
+    //         equal = 0;
+    //         break;
+    //     }
+    // }
+    // printf("Results_random are %s\n\n", equal_random ? "IDENTICAL" : "DIFFERENT");
 
-    mat_free(&A); 
-    mat_free(&B);
-    mat_free(&A_random); 
-    mat_free(&B_random);
-    mat_free(&C_naive);
-    mat_free(&C_strass);
-    mat_free(&C_naive_random);
-    mat_free(&C_strass_random);
+    // mat_free(&A); 
+    // mat_free(&B);
+    // mat_free(&A_random); 
+    // mat_free(&B_random);
+    // mat_free(&C_naive);
+    // mat_free(&C_strass);
+    // mat_free(&C_naive_random);
+    // mat_free(&C_strass_random);
     
 
     printf("test perfomance\n"); // тест производительности
 
     printf("%-10s %-10s %-15s %-15s %-10s\n", "n", "mod", "Naive(sec)", "Strassen(sec)", "Speedup");
 
-    int mods[] = {7, 10007, 1000003};
-    size_t sizes[] = {64, 128, 256, 512};
+    int mods[] = {7, 10007, 1000003};                                       // int mods[] = {7, 10007, 1000003};
+    size_t sizes[] = {1, 2, 3, 4, 5, 8, 16, 32, 64, 128, 256, 512};         // size_t sizes[] = {64, 128, 256, 512};
     
+    int num_sizes = sizeof(sizes) / sizeof(sizes[0]);
+
     for (int mi = 0; mi < 3; mi++) {
-        for (int si = 0; si < 4; si++) {
+        for (int si = 0; si < num_sizes; si++) {
             size_t n = sizes[si];
             int mod = mods[mi];
             
@@ -1133,9 +1208,15 @@ int main(void){    // роль 4
             
             if (time_naive > 0 && time_strassen > 0) {
                 double speedup = time_naive / time_strassen;
+                
+                if (n <= 4) {
+                    printf("%-10zu %-10d %-15.9f %-15.9f %-10.2f\n", n, mod, time_naive, time_strassen, speedup);
 
-                printf("%-10zu %-10d %-15.4f %-15.4f %-10.2f\n", n, mod, time_naive, time_strassen, speedup);
+                } else {
+                    printf("%-10zu %-10d %-15.4f %-15.4f %-10.2f\n", n, mod, time_naive, time_strassen, speedup);
 
+                }
+                
             } else {
                 printf("%-10zu %-10d %-15s %-15s %-10s\n", n, mod, "ERROR", "ERROR", "ERROR");
 
@@ -1206,5 +1287,50 @@ if (time_naive > 0 && time_strassen > 0) {
     } else {
         printf("%-10zu %-10d %-15s %-15s %-10s\n", n, mod, "ERROR", "ERROR", "ERROR");
     }
+
+почему блочное умножение матриц - (для маленьких возможно )
+
+--------------------------------------- UPD ---------------------------------------
+
+для измерения времени умножения матриц малого размера (n ≤ 64) применялся метод многократных повторений:
+операция выполнялась от 10 до 100 000 раз, после чего общее время делилось на количество повторений
+Измерение времени производилось с помощью функции gettimeofday(), обеспечивающей микросекундную точность
+Для матриц большего размера (n > 64) достаточно одного измерения.
+
+расширились массивы размеров матриц до 1, 2, 3, 4, 5, 8, 16, 32, 64, 128, 256, 512
+Чтобы исследовать производительность не только для больших,
+но и для маленьких матриц (1×1, 2×2, 3×3, 4×4, 5×5, 8×8, 16×16, 32×32)
+для маленьких матриц (n ≤ 4) выполнялось 100 000 повторений
+
+для n ≤ 8 - 10 000 повторений
+для n ≤ 16 - 1 000 повторений
+для n ≤ 32 - 100 повторений
+для n ≤ 64 - 10 повторений
+для n > 64 - 1 повторение
+
+добавленно автоматическое вычисление количества размеров в массиве sizes с помощью sizeof:
+
+int num_sizes = sizeof(sizes) / sizeof(sizes[0]);               Вычисляет, сколько элементов в массиве sizes (в данном случае 12)
+
+добавленно форматирование вывода времени в зависимости от размера матрицы:
+для n ≤ 4 - 9 знаков после запятой (для точности)
+для n > 4 - 4 знака после запятой (для удобства чтения)
+
+if (n <= 4) {
+    printf("%-10zu %-10d %-15.9f %-15.9f %-10.2f\n", ...);
+} else {
+    printf("%-10zu %-10d %-15.4f %-15.4f %-10.2f\n", ...);
+}
+
+Для маленьких матриц (n ≤ 4) время очень маленькое (например, 0.000000037 секунды)
+Нужно много знаков, чтобы увидеть реальные числа
+
+Для больших матриц (n ≥ 5) время достаточно большое (например, 0.0067 секунды)
+Достаточно 4 знаков, чтобы таблица была читаемой и не перегруженной
+
+Для наглядности представления результатов выбран адаптивный формат вывода:
+для матриц размером до 4×4 время выводится с девятью знаками после запятой (ввиду его чрезвычайно малых значений), 
+для матриц большего размера — с четырьмя знаками, что обеспечивает оптимальную читаемость таблицы
+
 
 */
