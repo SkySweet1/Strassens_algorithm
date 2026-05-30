@@ -1209,7 +1209,7 @@ int main(void){    // роль 4
             if (time_naive > 0 && time_strassen > 0) {
                 double speedup = time_naive / time_strassen;
                 
-                if (n <= 4) {
+                if (n <= 512) {
                     printf("%-10zu %-10d %-15.9f %-15.9f %-10.2f\n", n, mod, time_naive, time_strassen, speedup);
 
                 } else {
