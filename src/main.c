@@ -1096,97 +1096,97 @@ for (int iter = 0; iter < iterations; iter++)
 */
 
 int main(void){    // роль 4
-    // printf("test correctness\n"); // проверка корректности
+    printf("test correctness\n"); // проверка корректности
 
-    // Matrix A = mat_create(4, 7);
-    // Matrix B = mat_create(4, 7);
-    // Matrix A_random = mat_create(4, 7);
-    // Matrix B_random = mat_create(4, 7);
-    // Matrix C_naive = mat_create(4, 7);
-    // Matrix C_strass = mat_create(4, 7);
-    // Matrix C_naive_random = mat_create(4, 7);
-    // Matrix C_strass_random = mat_create(4, 7);
+    Matrix A = mat_create(4, 7);
+    Matrix B = mat_create(4, 7);
+    Matrix A_random = mat_create(4, 7);
+    Matrix B_random = mat_create(4, 7);
+    Matrix C_naive = mat_create(4, 7);
+    Matrix C_strass = mat_create(4, 7);
+    Matrix C_naive_random = mat_create(4, 7);
+    Matrix C_strass_random = mat_create(4, 7);
 
-    // if(A.data == NULL || B.data == NULL || C_naive.data == NULL || C_strass.data == NULL || C_naive_random.data == NULL || C_strass_random.data == NULL || A_random.data == NULL || B_random.data == NULL){
-    //     mat_free(&A); 
-    //     mat_free(&B);
-    //     mat_free(&A_random); 
-    //     mat_free(&B_random);
-    //     mat_free(&C_naive);
-    //     mat_free(&C_strass);
-    //     mat_free(&C_naive_random);
-    //     mat_free(&C_strass_random);
+    if(A.data == NULL || B.data == NULL || C_naive.data == NULL || C_strass.data == NULL || C_naive_random.data == NULL || C_strass_random.data == NULL || A_random.data == NULL || B_random.data == NULL){
+        mat_free(&A); 
+        mat_free(&B);
+        mat_free(&A_random); 
+        mat_free(&B_random);
+        mat_free(&C_naive);
+        mat_free(&C_strass);
+        mat_free(&C_naive_random);
+        mat_free(&C_strass_random);
 
-    //     return 1;
-    // }
+        return 1;
+    }
 
-    // for(size_t i = 0; i < 4; i++){
-    //     for(size_t j = 0; j < 4; j++){
-    //         A.data[i * 4 + j] = (i * 4 + j) % 7;
-    //         B.data[i * 4 + j] = (i * 4 + j) % 7;
-    //     }
-    // }
+    for(size_t i = 0; i < 4; i++){
+        for(size_t j = 0; j < 4; j++){
+            A.data[i * 4 + j] = (i * 4 + j) % 7;
+            B.data[i * 4 + j] = (i * 4 + j) % 7;
+        }
+    }
 
-    // mat_fill_random(&A_random);
-    // mat_fill_random(&B_random);
+    mat_fill_random(&A_random);
+    mat_fill_random(&B_random);
 
-    // mat_print(&A, "A");
-    // mat_print(&B, "B");
-    // mat_print(&A_random, "A_random");
-    // mat_print(&B_random, "B_random");
+    mat_print(&A, "A");
+    mat_print(&B, "B");
+    mat_print(&A_random, "A_random");
+    mat_print(&B_random, "B_random");
 
-    // int err_nai = naive_mul(&A, &B, &C_naive);
-    // int err_str = strassen_mul(&A, &B, &C_strass);
-    // int err_nai_random = naive_mul(&A_random, &B_random, &C_naive_random);
-    // int err_str_random = strassen_mul(&A_random, &B_random, &C_strass_random);
+    int err_nai = naive_mul(&A, &B, &C_naive);
+    int err_str = strassen_mul(&A, &B, &C_strass);
+    int err_nai_random = naive_mul(&A_random, &B_random, &C_naive_random);
+    int err_str_random = strassen_mul(&A_random, &B_random, &C_strass_random);
 
-    // if (err_nai != 0 && err_str != 0 && err_nai_random != 0 && err_str_random != 0) {
-    //     mat_print(&C_naive, "Naive result");
-    //     mat_print(&C_strass, "Strassen result");
-    //     mat_print(&C_naive_random, "Naive_random result");
-    //     mat_print(&C_strass_random, "Strassen_random result");
+    if (err_nai != 0 && err_str != 0 && err_nai_random != 0 && err_str_random != 0) {
+        mat_print(&C_naive, "Naive result");
+        mat_print(&C_strass, "Strassen result");
+        mat_print(&C_naive_random, "Naive_random result");
+        mat_print(&C_strass_random, "Strassen_random result");
 
-    //     return 1;
+        return 1;
     
-    // }
+    }
 
-    // printf("result for fixed matrix: \n");
+    printf("result for fixed matrix: \n");
 
-    // mat_print(&C_naive, "\n"); printf("Naive result\n\n");
-    // mat_print(&C_strass, "\n"); printf("Strassen result\n\n");
+    mat_print(&C_naive, "\n"); printf("Naive result\n\n");
+    mat_print(&C_strass, "\n"); printf("Strassen result\n\n");
 
-    // int equal = 1;
-    // for (size_t i = 0; i < 16; i++) {
-    //     if (C_naive.data[i] != C_strass.data[i]) {
-    //         equal = 0;
-    //         break;
-    //     }
-    // }
-    // printf("Results are %s\n\n", equal ? "IDENTICAL" : "DIFFERENT");
+    int equal = 1;
+    for (size_t i = 0; i < 16; i++) {
+        if (C_naive.data[i] != C_strass.data[i]) {
+            equal = 0;
+            break;
+        }
+    }
+    printf("Results are %s\n\n", equal ? "IDENTICAL" : "DIFFERENT");
 
-    // printf("result for random matrix: \n");
+    printf("result for random matrix: \n");
 
-    // mat_print(&C_naive_random, "\n"); printf("Naive random result\n\n");
-    // mat_print(&C_strass_random, "\n"); printf("Strassen random result\n\n");
+    mat_print(&C_naive_random, "\n"); printf("Naive random result\n\n");
+    mat_print(&C_strass_random, "\n"); printf("Strassen random result\n\n");
 
 
-    // int equal_random = 1;
-    // for (size_t i = 0; i < 16; i++) {
-    //     if (C_naive_random.data[i] != C_strass_random.data[i]) {
-    //         equal = 0;
-    //         break;
-    //     }
-    // }
-    // printf("Results_random are %s\n\n", equal_random ? "IDENTICAL" : "DIFFERENT");
+    int equal_random = 1;
+    for (size_t i = 0; i < 16; i++) {
+        if (C_naive_random.data[i] != C_strass_random.data[i]) {
+            equal = 0;
+            break;
+        }
+    }
+    printf("Results_random are %s\n\n", equal_random ? "IDENTICAL" : "DIFFERENT");
 
-    // mat_free(&A); 
-    // mat_free(&B);
-    // mat_free(&A_random); 
-    // mat_free(&B_random);
-    // mat_free(&C_naive);
-    // mat_free(&C_strass);
-    // mat_free(&C_naive_random);
-    // mat_free(&C_strass_random);
+    mat_free(&A); 
+    mat_free(&B);
+    mat_free(&A_random); 
+    mat_free(&B_random);
+    mat_free(&C_naive);
+    mat_free(&C_strass);
+    mat_free(&C_naive_random);
+    mat_free(&C_strass_random);
     
 
     printf("test perfomance\n"); // тест производительности
