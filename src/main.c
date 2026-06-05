@@ -1194,7 +1194,7 @@ int main(void){    // роль 4
     printf("%-10s %-10s %-15s %-15s %-10s\n", "n", "mod", "Naive(sec)", "Strassen(sec)", "Speedup");
 
     int mods[] = {7, 10007, 1000003};                                       // int mods[] = {7, 10007, 1000003};
-    size_t sizes[] = {1, 2, 3, 4, 5, 8, 16, 32, 64, 128, 256, 512};         // size_t sizes[] = {64, 128, 256, 512};
+    size_t sizes[] = {1, 2, 3, 4, 5, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096};         // size_t sizes[] = {64, 128, 256, 512};
     
     int num_sizes = sizeof(sizes) / sizeof(sizes[0]);
 
@@ -1206,20 +1206,12 @@ int main(void){    // роль 4
             double time_naive = test_perf(n, mod, 0);
             double time_strassen = test_perf(n, mod, 1);
             
-            if (time_naive > 0 && time_strassen > 0) {
+            if(time_naive > 0 && time_strassen > 0){
                 double speedup = time_naive / time_strassen;
-                
-                if (n <= 512) {
-                    printf("%-10zu %-10d %-15.9f %-15.9f %-10.2f\n", n, mod, time_naive, time_strassen, speedup);
 
-                } else {
-                    printf("%-10zu %-10d %-15.4f %-15.4f %-10.2f\n", n, mod, time_naive, time_strassen, speedup);
-
-                }
-                
+                printf("%-10zu %-10d %-15.9f %-15.9f %-10.2f\n", n, mod, time_naive, time_strassen, speedup);
             } else {
                 printf("%-10zu %-10d %-15s %-15s %-10s\n", n, mod, "ERROR", "ERROR", "ERROR");
-
             }
         }
         printf("\n");
